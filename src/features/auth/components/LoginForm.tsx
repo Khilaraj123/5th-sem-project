@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from 'react-router-dom'; // Handles dashboard redirection
 import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
 import { loginSchema, type LoginInput } from '../schemas/loginSchema';
 import { useAuth } from '../hooks/useAuth';
-import { OAuthButtons } from './OAuthButtons';
-import styles from './AuthComponents.module.css';
+import styles from './AuthComponents.module.css'; // Importing your CSS Module
 
 interface LoginFormProps {
   onSuccess?: (user: any) => void;
@@ -16,6 +16,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const { login } = useAuth();
+  const navigate = useNavigate(); // Hook instantiation for client routing
 
   const {
     register,
@@ -33,9 +34,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
     setServerError(null);
     try {
       const response = await login(data);
+      
+      // Execute optional context callbacks
       if (onSuccess) {
         onSuccess(response.user);
       }
+      
+      // Core redirect logic: Sends user to the dashboard path upon successful auth
+      const userRole = response.user?.role?.toLowerCase();
+      if (userRole === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard'); // Standard fallback landing dashboard
+      }
+
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Invalid email or password. Please try again.';
       setServerError(msg);
@@ -55,7 +67,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-        {/* Email Field */}
+        {/* Email Field Group */}
         <div className={styles.formGroup}>
           <label className={styles.label} htmlFor="login-email">Email Address</label>
           <div className={styles.inputWrapper}>
@@ -65,6 +77,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
               placeholder="name@example.com"
               className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
               {...register('email')}
+              disabled={isSubmitting}
             />
           </div>
           {errors.email && (
@@ -72,7 +85,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
           )}
         </div>
 
-        {/* Password Field */}
+        {/* Password Field Group */}
         <div className={styles.formGroup}>
           <label className={styles.label} htmlFor="login-password">Password</label>
           <div className={styles.inputWrapper}>
@@ -82,12 +95,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
               placeholder="••••••••"
               className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
               {...register('password')}
+              disabled={isSubmitting}
             />
             <button
               type="button"
               className={styles.eyeButton}
               onClick={() => setShowPassword(!showPassword)}
               title={showPassword ? 'Hide password' : 'Show password'}
+              disabled={isSubmitting}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -97,13 +112,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
           )}
         </div>
 
+        {/* Server Context Error Message Display */}
         {serverError && (
           <p className={styles.errorMessage} style={{ textAlign: 'center', marginTop: '4px' }}>
             {serverError}
           </p>
         )}
 
-        {/* Submit Button */}
+        {/* Dynamic Submit Action Button */}
         <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
           {isSubmitting ? (
             <>
@@ -119,9 +135,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onRegisterLinkC
         </button>
       </form>
 
+      {/* Styled Horizontal Line Divider */}
       <div className={styles.divider}>or continue with</div>
 
-      <OAuthButtons />
     </div>
   );
 };

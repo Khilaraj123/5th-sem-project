@@ -5,7 +5,6 @@ import { Eye, EyeOff, Loader2, UserPlus, GraduationCap, School } from 'lucide-re
 import { registerSchema, type RegisterInput } from '../schemas/registerSchema';
 import { useAuth } from '../hooks/useAuth';
 import { PasswordStrength } from './PasswordStrength';
-import { OAuthButtons } from './OAuthButtons';
 import styles from './AuthComponents.module.css';
 
 interface RegisterFormProps {
@@ -205,9 +204,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onLoginLi
         </button>
       </form>
 
-      <div className={styles.divider}>or register with</div>
 
-      <OAuthButtons />
     </div>
   );
 };
